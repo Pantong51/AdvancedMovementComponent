@@ -41,6 +41,7 @@ void AMechCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis("LookUp", this, &AMechCharacter::LookUp);
 }
 
+
 void AMechCharacter::StartJetpack()
 {
 	UMechMovementComponent* MovCom = Cast<UMechMovementComponent>(GetCharacterMovement());
@@ -48,9 +49,11 @@ void AMechCharacter::StartJetpack()
 	{
 
 		MovCom->SetJetpacking(true);
+		//The jetpack uses the falling state to deal with gravity. It's not the cleanest but this is the current best way to transition from group to air
 		Jump();
 	}
 }
+
 
 void AMechCharacter::StopJetpack()
 {
@@ -61,6 +64,7 @@ void AMechCharacter::StopJetpack()
 	}
 }
 
+
 void AMechCharacter::StartSprint()
 {
 	UMechMovementComponent* MovCom = Cast<UMechMovementComponent>(GetCharacterMovement());
@@ -69,6 +73,7 @@ void AMechCharacter::StartSprint()
 		MovCom->SetSprinting(true);
 	}
 }
+
 
 void AMechCharacter::StopSprint()
 {
@@ -79,6 +84,7 @@ void AMechCharacter::StopSprint()
 	}
 }
 
+
 void AMechCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
@@ -86,6 +92,7 @@ void AMechCharacter::MoveForward(float Value)
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
 }
+
 
 void AMechCharacter::MoveRight(float Value)
 {
@@ -95,10 +102,12 @@ void AMechCharacter::MoveRight(float Value)
 	}
 }
 
+
 void AMechCharacter::TurnRate(float Rate)
 {
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
+
 
 void AMechCharacter::LookUp(float Rate)
 {

@@ -72,7 +72,7 @@ float UMechMovementComponent::GetMaxAcceleration() const
 	}
 	return MaxAccel;
 }
-
+//This function is called every tick from Preform movement in the base character movment class. This is a good spot for all custom logic related to movement goes to
 void UMechMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity)
 {
 
