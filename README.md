@@ -1,4 +1,5 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+![WIP](https://img.shields.io/badge/Project-EarlyRelease-yellowgreen.svg)
 
 # NetworkedJetpack
 * Jetpack added to the CharacterMovementComponent in UE4: Network Ready, Supports Rollbacks, Pretty basic for your own needs
