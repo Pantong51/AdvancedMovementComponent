@@ -8,6 +8,7 @@
 * Add Transitions from ground to jetpacking 
 * Add a resource cost that can be configured to be for all 4 possible states (No cost, Sprint cost, Jetpack Cost, Both Cost)
 * Create 3 Video Tutorials for this
-** 1: How to configure
-** 2: How to intrigrate to Shooter Game
-** 3: How to extend this code to support custom logic
+
+* 1: How to configure
+* 2: How to intrigrate to Shooter Game
+* 3: How to extend this code to support custom logic
