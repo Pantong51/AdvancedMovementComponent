@@ -52,7 +52,6 @@ public:
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 
-#pragma region Sprinting
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	float SprintSpeedMultiplier;
 
@@ -70,9 +69,7 @@ public:
 	void SetSprinting(bool bIsSprinting);
 
 	uint8 bWantsToSprint : 1;
-#pragma endregion Sprinting
-
-#pragma region Jetpacking
+	
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	float JetpackSpeedMultiplier;
 
@@ -90,8 +87,6 @@ public:
 	void SetJetpacking(bool bIsJetpacking);
 
 	uint8 bWantsToJetpack : 1;
-
-#pragma endregion Jetpacking
 
 	UFUNCTION(Unreliable, Server, WithValidation)
 	void ServerSetMoveDirection(const FVector& MoveDir);
@@ -118,12 +113,8 @@ public:
 	virtual void SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, class FNetworkPredictionData_Client_Character & ClientData) override;
 	virtual void PrepMoveFor(ACharacter* Character) override;
 
-#pragma region Sprinting
 	uint8 bSavedWantsToSprint : 1;
-#pragma endregion Sprinting
-#pragma region Jetpack
 	uint8 bSavedWantsToJetpack : 1;
-#pragma endregion Jetpack
 	FVector SavedMoveDirection;
 };
 /** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */
