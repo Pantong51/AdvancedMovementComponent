@@ -4,8 +4,8 @@
 * Feel free to make PR if the base can be upgraded at all. 
 
 # ToDo
-* Add Curve Data to allow for the accerlation over time to be different. An example of this is for a massive boost for the first .25 sec and falloff after
-* Add Transitions from ground to jetpacking 
+* Add Curve Data to allow for the acceleration over time to be different. An example of this is for a massive boost for the first .25 sec and falloff after
+* Add Transitions from the ground to jetpacking and jetpacking to the ground
 * Add a resource cost that can be configured to be for all 4 possible states (No cost, Sprint cost, Jetpack Cost, Both Cost)
 * Create 3 Video Tutorials for this
 
