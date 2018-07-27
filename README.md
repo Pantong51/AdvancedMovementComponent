@@ -8,6 +8,7 @@
 * Added Curve Data to allow for the acceleration over time to be different. An example of this is for a massive boost for the first .25 sec and falloff after
 
 # ToDo
+* Setup good Defaults
 * Add Transitions from the ground to jetpacking and jetpacking to the ground
 * Add a resource cost that can be configured to be for all possible states (No cost, Sprint cost, Jetpack Cost, Both Cost, On ground and Not on Ground)
 * Create 3 Video Tutorials for this
