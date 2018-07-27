@@ -2,12 +2,15 @@
 
 #include "MechMovementComponent.h"
 #include "../../../../../../../../EpicGames/Engines/UE_4.20/Engine/Source/Runtime/Engine/Classes/GameFramework/Character.h"
+#include "UnrealMathUtility.h"
+#include "Curves/CurveFloat.h"
 
 
 
 
 UMechMovementComponent::UMechMovementComponent()
 {
+	//100% Change these defaults. They suck
 	SprintSpeedMultiplier = 2;
 	SprintAccelerationMultiplier = 2;
 	JetpackSpeedMultiplier = 2;
@@ -40,6 +43,7 @@ class FNetworkPredictionData_Client* UMechMovementComponent::GetPredictionData_C
 
 void UMechMovementComponent::SetJetpacking(bool bIsJetpacking)
 {
+	TimeJetpackHeldDown = 0;
 	bWantsToJetpack = bIsJetpacking;
 }
 
@@ -58,7 +62,15 @@ float UMechMovementComponent::GetMaxSpeed() const
 	float MaxSpeed = Super::GetMaxSpeed();
 	if (bWantsToSprint)
 	{
-		MaxSpeed *= SprintSpeedMultiplier;
+		if (bSprintUseCurve)
+		{
+			MaxSpeed *= SprintAccelerationMultiplierCurve->GetFloatValue(FMath::Clamp(TimeSprintHeldDown, 0.f, 1.f));
+		}
+		else
+		{
+			MaxSpeed *= SprintSpeedMultiplier;
+		}
+
 	}
 	return MaxSpeed;
 }
@@ -68,11 +80,19 @@ float UMechMovementComponent::GetMaxAcceleration() const
 	float MaxAccel = Super::GetMaxAcceleration();
 	if (bWantsToSprint)
 	{
-		MaxAccel *= SprintAccelerationMultiplier;
+		if (bSprintUseCurve)
+		{
+			MaxAccel *= SprintAccelerationMultiplierCurve->GetFloatValue(FMath::Clamp(TimeSprintHeldDown, 0.f, 1.f));
+		}
+		else
+		{
+			MaxAccel *= SprintAccelerationMultiplier;
+		}
+		
 	}
 	return MaxAccel;
 }
-//This function is called every tick from Preform movement in the base character movment class. This is a good spot for all custom logic related to movement goes to
+
 void UMechMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity)
 {
 
@@ -92,19 +112,45 @@ void UMechMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 
 	if (bWantsToJetpack == true)
 	{
-		Velocity.Z += JetpackSpeedMultiplier * DeltaSeconds;
+		if (bJetpackUseCurve)
+		{
+			TimeJetpackHeldDown += DeltaSeconds;
+			Velocity.Z += JetpackSpeedMultiplierCurve->GetFloatValue(FMath::Clamp(TimeJetpackHeldDown, 0.f, 1.f)) * DeltaSeconds;
+			Velocity.Y += ((MoveDirection.Y) * JetpackSpeedMultiplierCurve->GetFloatValue(FMath::Clamp(TimeJetpackHeldDown, 0.f, 1.f)) * DeltaSeconds) * JetpackForwardMomentumScale;
+			Velocity.X += ((MoveDirection.X) * JetpackSpeedMultiplierCurve->GetFloatValue(FMath::Clamp(TimeJetpackHeldDown, 0.f, 1.f)) * DeltaSeconds) * JetpackForwardMomentumScale;
+		}
+		else
+		{
+			Velocity.Z += JetpackSpeedMultiplier * DeltaSeconds;
+			Velocity.Y += (MoveDirection.Y) * JetpackForwardMomentumScale;
+			Velocity.X += (MoveDirection.X) * JetpackForwardMomentumScale;
+		}
+
+	}
+	else
+	{
+		TimeJetpackHeldDown = 0;
 	}
 
 	if (bWantsToSprint == true)
 	{
-
+		if (bSprintUseCurve)
+		{
+			TimeSprintHeldDown += DeltaSeconds;
+		}
 	}
+	else
+	{
+		TimeSprintHeldDown = 0;
+	}
+
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 
 }
 
 void UMechMovementComponent::SetSprinting(bool bIsSprinting)
 {
+	TimeSprintHeldDown = 0;
 	bWantsToSprint = bIsSprinting;
 }
 
@@ -114,6 +160,8 @@ void FSavedMove_MyMovement::Clear()
 	bSavedWantsToSprint = false;
 	bSavedWantsToJetpack = false;
 	SavedMoveDirection = FVector::ZeroVector;
+	SavedJetPackTimeHeldDown = 0;
+	SavedSprintTimeHeldDown = 0;
 }
 
 uint8 FSavedMove_MyMovement::GetCompressedFlags() const
@@ -140,6 +188,15 @@ bool FSavedMove_MyMovement::CanCombineWith(const FSavedMovePtr& NewMove, ACharac
 	{
 		return false;
 	}
+	if (SavedJetPackTimeHeldDown != ((FSavedMove_MyMovement*)&NewMove)->SavedJetPackTimeHeldDown)
+	{
+		return false;
+	}
+	if (SavedSprintTimeHeldDown != ((FSavedMove_MyMovement*)&NewMove)->SavedSprintTimeHeldDown)
+	{
+		return false;
+	}
+
 	return Super::CanCombineWith(NewMove, Character, MaxDelta);
 }
 
@@ -151,6 +208,8 @@ void FSavedMove_MyMovement::SetMoveFor(ACharacter* Character, float InDeltaTime,
 	{
 		bSavedWantsToSprint = CharMov->bWantsToSprint;
 		bSavedWantsToJetpack = CharMov->bWantsToJetpack;
+		SavedJetPackTimeHeldDown = CharMov->TimeJetpackHeldDown;
+		SavedSprintTimeHeldDown = CharMov->TimeSprintHeldDown;
 	}
 }
 
@@ -160,7 +219,8 @@ void FSavedMove_MyMovement::PrepMoveFor(ACharacter* Character)
 	UMechMovementComponent* CharMov = Cast<UMechMovementComponent>(Character->GetCharacterMovement());
 	if (CharMov)
 	{
-
+		CharMov->TimeJetpackHeldDown = SavedJetPackTimeHeldDown;
+		CharMov->TimeSprintHeldDown = SavedSprintTimeHeldDown;
 	}
 
 }

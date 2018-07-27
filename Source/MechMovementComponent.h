@@ -9,21 +9,16 @@
 /*
 ========================================================================
 Here's how player movement prediction, replication and correction works in network games:
-
 Every tick, the TickComponent() function is called.  It figures out the acceleration and rotation change for the frame,
 and then calls PerformMovement() (for locally controlled Characters), or ReplicateMoveToServer() (if it's a network client).
-
 ReplicateMoveToServer() saves the move (in the PendingMove list), calls PerformMovement(), and then replicates the move
 to the server by calling the replicated function ServerMove() - passing the movement parameters, the client's
 resultant position, and a timestamp.
-
 ServerMove() is executed on the server.  It decodes the movement parameters and causes the appropriate movement
 to occur.  It then looks at the resulting position and if enough time has passed since the last response, or the
 position error is significant enough, the server calls ClientAdjustPosition(), a replicated function.
-
 ClientAdjustPosition() is executed on the client.  The client sets its position to the servers version of position,
 and sets the bUpdatePosition flag to true.
-
 When TickComponent() is called on the client again, if bUpdatePosition is true, the client will call
 ClientUpdatePosition() before calling PerformMovement().  ClientUpdatePosition() replays all the moves in the pending
 move list which occurred after the timestamp of the move the server was adjusting.
@@ -40,6 +35,14 @@ move list which occurred after the timestamp of the move the server was adjustin
 //							FLAG_Custom_2 = 0x40, 
 //							FLAG_Custom_3 = 0x80, 
 
+UENUM(BlueprintType)
+enum class EFuelResourceMode : uint8
+{
+	NoResourceCost UMETA(DisplayName="NoResourceCost"),
+	SprintCost UMETA(DisplayName="SprintCost"),
+	JetpackCost UMETA(DisplayName="JetpackCost"),
+	BothCost UMETA(DisplayName="BothCost")
+};
 
 UCLASS()
 class COOP_MECH_API UMechMovementComponent : public UCharacterMovementComponent
@@ -47,17 +50,25 @@ class COOP_MECH_API UMechMovementComponent : public UCharacterMovementComponent
 	GENERATED_BODY()
 public:
 	UMechMovementComponent();
-	//Define friend of custom movement saved class
 	friend class FSavedMove_MyMovement;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintUseCurve"))
 	float SprintSpeedMultiplier;
-
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintUseCurve"))
 	float SprintAccelerationMultiplier;
-
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintUseCurve"))
+	float SprintResourceCost;
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintUseCurve"))
+	UCurveFloat* SprintSpeedMultiplierCurve;
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintUseCurve"))
+	UCurveFloat* SprintAccelerationMultiplierCurve;
+	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintUseCurve"))
+	UCurveFloat* SprintResourceCostCurve;
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	bool bSprintUseCurve;
+	float TimeSprintHeldDown;
 	//************************************
 	// Method:    SetSprinting
 	// FullName:  UMechMovementComponent::SetSprinting
@@ -67,15 +78,30 @@ public:
 	// Parameter: bool bIsSprinting
 	//************************************
 	void SetSprinting(bool bIsSprinting);
-
 	uint8 bWantsToSprint : 1;
-	
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+
+	UPROPERTY(EditAnywhere, Category = "Config")
+	EFuelResourceMode ResourceMode;
+	UPROPERTY(EditAnywhere, Category = "Config")
+	bool bUseResourcesOnGround = false;
+
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackUseCurve"))
 	float JetpackSpeedMultiplier;
-
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackUseCurve"))
 	float JetpackAccelerationMultiplier;
-
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackUseCurve"))
+	float JetpackResourceCost;
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay)
+	float JetpackForwardMomentumScale;
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackUseCurve"))
+	UCurveFloat* JetpackSpeedMultiplierCurve;
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackUseCurve"))
+	UCurveFloat* JetpackAccelerationMultiplierCurve;
+	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackUseCurve"))
+	UCurveFloat* JetpackResourceCostCurve;
+	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	bool bJetpackUseCurve;
+	float TimeJetpackHeldDown;
 	//************************************
 	// Method:    SetJetpacking
 	// FullName:  UMechMovementComponent::SetJetpacking
@@ -85,7 +111,6 @@ public:
 	// Parameter: bool bIsJetpacking
 	//************************************
 	void SetJetpacking(bool bIsJetpacking);
-
 	uint8 bWantsToJetpack : 1;
 
 	UFUNCTION(Unreliable, Server, WithValidation)
@@ -115,8 +140,11 @@ public:
 
 	uint8 bSavedWantsToSprint : 1;
 	uint8 bSavedWantsToJetpack : 1;
+	float SavedSprintTimeHeldDown;
+	float SavedJetPackTimeHeldDown;
 	FVector SavedMoveDirection;
 };
+
 /** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */
 class FNetworkPredictionData_Client_MyMovement : public FNetworkPredictionData_Client_Character
 {
