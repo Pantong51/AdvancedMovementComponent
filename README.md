@@ -9,7 +9,7 @@
 
 # ToDo
 * Add Transitions from the ground to jetpacking and jetpacking to the ground
-* Add a resource cost that can be configured to be for all 4 possible states (No cost, Sprint cost, Jetpack Cost, Both Cost)
+* Add a resource cost that can be configured to be for all possible states (No cost, Sprint cost, Jetpack Cost, Both Cost, On ground and Not on Ground)
 * Create 3 Video Tutorials for this
 
 * 1: How to configure
