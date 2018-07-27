@@ -47,7 +47,7 @@ float UAdvancedMovementComponent::GetMaxSpeed() const
 	}
 	return MaxSpeed;
 }
-
+//I Don't like this current implmenetation of acceleration. It goes insanely wild when pressingboth sprint and jetpack
 float UAdvancedMovementComponent::GetMaxAcceleration() const
 {
 	float MaxAcceleration = Super::GetMaxAcceleration();
