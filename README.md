@@ -11,6 +11,8 @@
 
 # ToDo
 * Resource Costs
+* Wall Running
+* Quick Dashing
 * Create 3 Video Tutorials for this
 
 * 1: How to configure
