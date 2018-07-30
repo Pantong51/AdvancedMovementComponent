@@ -5,14 +5,17 @@
 #include "UnrealMathUtility.h"
 #include "Curves/CurveFloat.h"
 
-
-
-
 UAdvancedMovementComponent::UAdvancedMovementComponent()
 {
 	JetpackSpeedMultiplier = 1500.f;
 	JetpackForwardMomentumScale = .5f;
-	JetpackAccelerationMultiplier = 1500.f;
+	JetpackAccelerationMultiplier = 4.f;
+	AirControl = .95;
+	bAllowMantainingZVelocity = true;
+	SprintSpeedMultiplier = 4.f;
+	SprintAccelerationMultiplier = 4.f;
+	MaintainZVelocityRate = .05f;
+
 }
 
 void UAdvancedMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
@@ -47,7 +50,7 @@ float UAdvancedMovementComponent::GetMaxSpeed() const
 	}
 	return MaxSpeed;
 }
-//I Don't like this current implmenetation of acceleration. It goes insanely wild when pressingboth sprint and jetpack
+
 float UAdvancedMovementComponent::GetMaxAcceleration() const
 {
 	float MaxAcceleration = Super::GetMaxAcceleration();
@@ -109,7 +112,6 @@ void UAdvancedMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVe
 			Velocity.Y += (MoveDirection.Y * JetpackSpeedMultiplier * DeltaSeconds) * JetpackForwardMomentumScale;
 			Velocity.X += (MoveDirection.X * JetpackSpeedMultiplier * DeltaSeconds) * JetpackForwardMomentumScale;
 		}
-
 	}
 	else
 	{
@@ -120,7 +122,7 @@ void UAdvancedMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVe
 		SprintTimeHeldDown = FMath::Clamp(SprintTimeHeldDown + DeltaSeconds, 0.f, 1.f);
 		if (bWantsToJetpack == false && bAllowMantainingZVelocity)
 		{
-			Velocity.Z *= MaintaintZVelocityRate;
+			Velocity.Z = FMath::InterpEaseInOut(Velocity.Z, Velocity.Z * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
 		}
 	}
 	else

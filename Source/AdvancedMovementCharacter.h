@@ -4,16 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "MechCharacter.generated.h"
+#include "AdvancedMovementCharacter.generated.h"
 
 UCLASS()
-class COOP_MECH_API AMechCharacter : public ACharacter
+class AMC_API AAdvancedMovementCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	AMechCharacter(const FObjectInitializer& ObjectInitializer);
+	AAdvancedMovementCharacter(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,10 +25,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
 	//************************************
 	// Method:    StartJetpack
-	// FullName:  AMechCharacter::StopJetpack
+	// FullName:  AAdvancedMovementCharacter::StopJetpack
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Used to set the state of the jetpack
@@ -38,17 +37,17 @@ public:
 
 	//************************************
 	// Method:    StopJetpack
-	// FullName:  AMechCharacter::StopJetpack
+	// FullName:  AAdvancedMovementCharacter::StopJetpack
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Used to set the state of the jetpack
 	//************************************
 	UFUNCTION(BlueprintCallable, Category = "Jetpack")
-	void StopJetpack();
+		void StopJetpack();
 
 	//************************************
 	// Method:    StartSprint
-	// FullName:  AMechCharacter::StartSprint
+	// FullName:  AAdvancedMovementCharacter::StartSprint
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Used to set the state of the sprint
@@ -58,7 +57,7 @@ public:
 
 	//************************************
 	// Method:    StopSprint
-	// FullName:  AMechCharacter::StopSprint
+	// FullName:  AAdvancedMovementCharacter::StopSprint
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Used to set the state of the sprint
@@ -68,7 +67,7 @@ public:
 
 	//************************************
 	// Method:    MoveForward
-	// FullName:  AMechCharacter::MoveForward
+	// FullName:  AAdvancedMovementCharacter::MoveForward
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Allows user to move based on axis input 
@@ -78,7 +77,7 @@ public:
 
 	//************************************
 	// Method:    MoveRight
-	// FullName:  AMechCharacter::MoveRight
+	// FullName:  AAdvancedMovementCharacter::MoveRight
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Allows user to move based on axis input 
@@ -88,7 +87,7 @@ public:
 
 	//************************************
 	// Method:    TurnRate
-	// FullName:  AMechCharacter::TurnRate
+	// FullName:  AAdvancedMovementCharacter::TurnRate
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Allows user to turn based on axis input 
@@ -98,7 +97,7 @@ public:
 
 	//************************************
 	// Method:    LookUp
-	// FullName:  AMechCharacter::LookUp
+	// FullName:  AAdvancedMovementCharacter::LookUp
 	// Access:    public 
 	// Returns:   void
 	// Qualifier: Allows user to turn based on axis input 
@@ -109,7 +108,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
 	float BaseTurnRate;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
-	float BaseLookUpRate;
-	
-	
+	float BaseLookUpRate;	
 };

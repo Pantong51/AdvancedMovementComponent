@@ -110,9 +110,9 @@ public:
 	float SprintAirScale; 
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	bool bAllowMantainingZVelocity;
-	//Value between 0-1, used to "soften" zVelocity changes when spriting
+	//Value between 0-1, used to "soften" zVelocity changes when sprinting in air
 	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
-	float MaintaintZVelocityRate;
+	float MaintainZVelocityRate;
 
 	float SprintTimeHeldDown;
 
@@ -149,7 +149,7 @@ public:
 	//Scales the effects of Jetpack in air
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	float JetpackAirScale;
-	//Sets how much Vecloity.x and Vecloity.y the jetpack adds too 0 being none 1 being full -1 would be removing .x and .y
+	//Sets how much Vecloity.x and Vecloity.y the jetpack has, setting to value too high will exponentially increase X and Y Speed
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	float JetpackForwardMomentumScale;
 
