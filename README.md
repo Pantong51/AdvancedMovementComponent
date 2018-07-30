@@ -2,15 +2,15 @@
 ![WIP](https://img.shields.io/badge/Project-EarlyRelease-yellowgreen.svg)
 
 # AdvancedMovementComponent
+* Jetpack Added
+* Sprinting Added
+* Curve Options Added
 * Jetpack added to the CharacterMovementComponent in UE4: Network Ready, Supports Rollbacks, Pretty basic for your own needs
 * This Repo will only contain updates to these files. It will be up to the user to move to their own project.
 * Feel free to make PR if the base can be upgraded at all. 
-* Added Curve Data to allow for the acceleration over time to be different. An example of this is for a massive boost for the first .25 sec and falloff after
 
 # ToDo
-* Setup good Defaults
-* Add Transitions from the ground to jetpacking and jetpacking to the ground
-* Add a resource cost that can be configured to be for all possible states (No cost, Sprint cost, Jetpack Cost, Both Cost, On ground and Not on Ground)
+* Resource Costs
 * Create 3 Video Tutorials for this
 
 * 1: How to configure
