@@ -10,8 +10,6 @@
 * Feel free to make PR if the base can be upgraded at all. 
 
 # ToDo
-* Clamp Speeds
-* Resource Costs
 * Wall Running
 * Quick Dashing
 * Create 3 Video Tutorials for this
