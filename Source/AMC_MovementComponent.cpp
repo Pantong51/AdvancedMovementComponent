@@ -1,13 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "AdvancedMovementComponent.h"
+#include "AMC_MovementComponent.h"
 #include "GameFramework/Character.h"
-#include "UnrealMathUtility.h"
 #include "Curves/CurveFloat.h"
 
-UAdvancedMovementComponent::UAdvancedMovementComponent()
+UAMC_MovementComponent::UAMC_MovementComponent()
 {
-	JetpackSpeedMultiplier = 1500.f;
+	JetpackForce = 1500.f;
 	JetpackForwardMomentumScale = .5f;
 	JetpackAccelerationMultiplier = 4.f;
 	AirControl = .95;
@@ -15,33 +14,21 @@ UAdvancedMovementComponent::UAdvancedMovementComponent()
 	SprintSpeedMultiplier = 4.f;
 	SprintAccelerationMultiplier = 4.f;
 	MaintainZVelocityRate = .05f;
+	MaxHoldJetpackTime = 1.f;
+	MaxHoldSprintTime = 1.f;
+	MaxXYVelocity = 4096;
+	MaxZVelocity = 4096;
 
 }
 
-void UAdvancedMovementComponent::UpdateFromCompressedFlags(uint8 Flags)
+void UAMC_MovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 {
 	Super::UpdateFromCompressedFlags(Flags);
 	bWantsToSprint = (Flags&FSavedMove_Character::FLAG_Custom_0) != 0;
 	bWantsToJetpack = (Flags&FSavedMove_Character::FLAG_Custom_1) != 0;
 }
 
-class FNetworkPredictionData_Client* UAdvancedMovementComponent::GetPredictionData_Client() const
-{
-	check(PawnOwner != NULL);
-	check(PawnOwner->Role < ROLE_Authority);
-
-	if (!ClientPredictionData)
-	{
-		UAdvancedMovementComponent* MutableThis = const_cast<UAdvancedMovementComponent*>(this);
-
-		MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_AdvancedMovement(*this);
-		MutableThis->ClientPredictionData->MaxSmoothNetUpdateDist = 92.f;
-		MutableThis->ClientPredictionData->NoSmoothNetUpdateDist = 140.f;
-	}
-	return ClientPredictionData;
-}
-
-float UAdvancedMovementComponent::GetMaxSpeed() const
+float UAMC_MovementComponent::GetMaxSpeed() const
 {
 	float MaxSpeed = Super::GetMaxSpeed();
 	if (bWantsToSprint == true)
@@ -51,11 +38,13 @@ float UAdvancedMovementComponent::GetMaxSpeed() const
 	return MaxSpeed;
 }
 
-float UAdvancedMovementComponent::GetMaxAcceleration() const
+float UAMC_MovementComponent::GetMaxAcceleration() const
 {
 	float MaxAcceleration = Super::GetMaxAcceleration();
-	if (bWantsToSprint == true)
+	int count = 0;
+	if (bSprintEnabled == true && bWantsToSprint == true)
 	{
+		count += 1;
 		if (bSprintAccelerationCurve == true)
 		{
 			MaxAcceleration *= SprintAccelerationMultiplierCurve->GetFloatValue(SprintTimeHeldDown);
@@ -65,8 +54,9 @@ float UAdvancedMovementComponent::GetMaxAcceleration() const
 			MaxAcceleration *= SprintAccelerationMultiplier;
 		}
 	}
-	if (bWantsToJetpack == true)
+	if (bJetpackEnabled == true && bWantsToJetpack == true)
 	{
+		count += 1;
 		if (bJetpackAccelerationCurve == true)
 		{
 			MaxAcceleration *= JetpackAccelerationMultiplierCurve->GetFloatValue(JetpackTimeHeldDown);
@@ -76,10 +66,14 @@ float UAdvancedMovementComponent::GetMaxAcceleration() const
 			MaxAcceleration *= JetpackAccelerationMultiplier;
 		}
 	}
+	if (count > 0)
+	{
+		MaxAcceleration /= count;
+	}
 	return MaxAcceleration;
 }
 
-void UAdvancedMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity)
+void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity)
 {
 	if (!CharacterOwner)
 	{
@@ -95,31 +89,31 @@ void UAdvancedMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVe
 		}
 	}
 
-	if (bWantsToJetpack == true)
+	if (CanJetpack() == true && bWantsToJetpack == true)
 	{
-		JetpackTimeHeldDown = FMath::Clamp(JetpackTimeHeldDown + DeltaSeconds, 0.f, 1.f);
+		JetpackTimeHeldDown = FMath::Clamp(JetpackTimeHeldDown + DeltaSeconds, 0.f, MaxHoldJetpackTime);
 		if (bJetpackSpeedCurve)
 		{
 			float CurveValue = 0;
-			CurveValue = JetpackSpeedMultiplierCurve->GetFloatValue(JetpackTimeHeldDown);
+			CurveValue = JetpackForceCurve->GetFloatValue(JetpackTimeHeldDown);
 			Velocity.Z += (CurveValue * DeltaSeconds);
 			Velocity.Y += (MoveDirection.Y * CurveValue * DeltaSeconds) * JetpackForwardMomentumScale;
 			Velocity.X += (MoveDirection.X * CurveValue * DeltaSeconds) * JetpackForwardMomentumScale;
 		}
 		else
 		{
-			Velocity.Z += (JetpackSpeedMultiplier * DeltaSeconds);
-			Velocity.Y += (MoveDirection.Y * JetpackSpeedMultiplier * DeltaSeconds) * JetpackForwardMomentumScale;
-			Velocity.X += (MoveDirection.X * JetpackSpeedMultiplier * DeltaSeconds) * JetpackForwardMomentumScale;
+			Velocity.Z += (JetpackForce * DeltaSeconds);
+			Velocity.Y += (MoveDirection.Y * JetpackForce * DeltaSeconds) * JetpackForwardMomentumScale;
+			Velocity.X += (MoveDirection.X * JetpackForce * DeltaSeconds) * JetpackForwardMomentumScale;
 		}
 	}
 	else
 	{
 		JetpackTimeHeldDown = 0;
 	}
-	if (bWantsToSprint == true)
+	if (CanSprint() == true && bWantsToSprint == true)
 	{
-		SprintTimeHeldDown = FMath::Clamp(SprintTimeHeldDown + DeltaSeconds, 0.f, 1.f);
+		SprintTimeHeldDown = FMath::Clamp(SprintTimeHeldDown + DeltaSeconds, 0.f, MaxHoldSprintTime);
 		if (bWantsToJetpack == false && bAllowMantainingZVelocity)
 		{
 			Velocity.Z = FMath::InterpEaseInOut(Velocity.Z, Velocity.Z * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
@@ -129,25 +123,66 @@ void UAdvancedMovementComponent::OnMovementUpdated(float DeltaSeconds, const FVe
 	{
 		SprintTimeHeldDown = 0;
 	}
+	if (Velocity.X > MaxXYVelocity)
+	{
+		Velocity.X = MaxXYVelocity;
+	}
+	else if (Velocity.Y > MaxXYVelocity)
+	{
+		Velocity.Y = MaxXYVelocity;
+	}
+	else if (Velocity.Z > MaxZVelocity)
+	{
+		Velocity.Z = MaxZVelocity;
+	}
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 }
 
-void UAdvancedMovementComponent::SetJetpacking(bool bIsJetpacking)
+bool UAMC_MovementComponent::CanJetpack()
+{
+	//Allow for adding cooldowns or resources checks
+	return (bJetpackEnabled);
+}
+
+void UAMC_MovementComponent::SetJetpacking(bool bIsJetpacking)
 {
 	bWantsToJetpack = bIsJetpacking;
 }
 
-void UAdvancedMovementComponent::SetSprinting(bool bIsSprinting)
+float UAMC_MovementComponent::GetJetpackSpeed()
+{
+	if (bJetpackSpeedCurve)
+	{
+		return JetpackForceCurve->GetFloatValue(JetpackTimeHeldDown);
+	}
+	else
+	{
+		return JetpackForce;
+	}
+}
+
+bool UAMC_MovementComponent::CanSprint()
+{
+	//Allow for adding cooldowns or resources checks
+	return (bSprintEnabled);
+}
+
+void UAMC_MovementComponent::SetSprinting(bool bIsSprinting)
 {
 	bWantsToSprint = bIsSprinting;
 }
 
-void UAdvancedMovementComponent::ServerSetMoveDirection_Implementation(const FVector& MoveDir)
+float UAMC_MovementComponent::GetSprintingSpeed()
+{
+	return GetMaxSpeed();
+}
+
+void UAMC_MovementComponent::ServerSetMoveDirection_Implementation(const FVector& MoveDir)
 {
 	MoveDirection = MoveDir;
 }
 
-bool UAdvancedMovementComponent::ServerSetMoveDirection_Validate(const FVector& MoveDir)
+bool UAMC_MovementComponent::ServerSetMoveDirection_Validate(const FVector& MoveDir)
 {
 	return true;
 }
@@ -192,7 +227,7 @@ bool FSavedMove_AdvancedMovement::CanCombineWith(const FSavedMovePtr& NewMove, A
 void FSavedMove_AdvancedMovement::SetMoveFor(ACharacter* Character, float InDeltaTime, FVector const& NewAccel, class FNetworkPredictionData_Client_Character & ClientData)
 {
 	Super::SetMoveFor(Character, InDeltaTime, NewAccel, ClientData);
-	UAdvancedMovementComponent* CharMov = Cast<UAdvancedMovementComponent>(Character->GetCharacterMovement());
+	UAMC_MovementComponent* CharMov = Cast<UAMC_MovementComponent>(Character->GetCharacterMovement());
 	if (CharMov)
 	{
 		bSavedWantsToSprint = CharMov->bWantsToSprint;
@@ -206,7 +241,7 @@ void FSavedMove_AdvancedMovement::SetMoveFor(ACharacter* Character, float InDelt
 void FSavedMove_AdvancedMovement::PrepMoveFor(ACharacter* Character)
 {
 	Super::PrepMoveFor(Character);
-	UAdvancedMovementComponent* CharMov = Cast<UAdvancedMovementComponent>(Character->GetCharacterMovement());
+	UAMC_MovementComponent* CharMov = Cast<UAMC_MovementComponent>(Character->GetCharacterMovement());
 	if (CharMov)
 	{
 		CharMov->MoveDirection = SavedMoveDirection;
@@ -222,6 +257,22 @@ FNetworkPredictionData_Client_AdvancedMovement::FNetworkPredictionData_Client_Ad
 	: Super(ClientMovement)
 {
 
+}
+
+class FNetworkPredictionData_Client* UAMC_MovementComponent::GetPredictionData_Client() const
+{
+	check(PawnOwner != NULL);
+	check(PawnOwner->Role < ROLE_Authority);
+
+	if (!ClientPredictionData)
+	{
+		UAMC_MovementComponent* MutableThis = const_cast<UAMC_MovementComponent*>(this);
+
+		MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_AdvancedMovement(*this);
+		MutableThis->ClientPredictionData->MaxSmoothNetUpdateDist = 92.f;
+		MutableThis->ClientPredictionData->NoSmoothNetUpdateDist = 140.f;
+	}
+	return ClientPredictionData;
 }
 
 FSavedMovePtr FNetworkPredictionData_Client_AdvancedMovement::AllocateNewMove()

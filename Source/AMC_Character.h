@@ -4,22 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "AdvancedMovementCharacter.generated.h"
+#include "AMC_Character.generated.h"
 
 UCLASS()
-class AMC_API AAdvancedMovementCharacter : public ACharacter
+class AMC_API AAMC_Character : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	AAdvancedMovementCharacter(const FObjectInitializer& ObjectInitializer);
+	AAMC_Character(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -43,7 +43,7 @@ public:
 	// Qualifier: Used to set the state of the jetpack
 	//************************************
 	UFUNCTION(BlueprintCallable, Category = "Jetpack")
-		void StopJetpack();
+	void StopJetpack();
 
 	//************************************
 	// Method:    StartSprint
@@ -108,5 +108,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
 	float BaseTurnRate;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
-	float BaseLookUpRate;	
+	float BaseLookUpRate;
 };

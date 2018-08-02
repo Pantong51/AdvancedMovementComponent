@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Curves/CurveFloat.h"
-#include "AdvancedMovementComponent.generated.h"
+#include "AMC_MovementComponent.generated.h"
 
 /*
 ========================================================================
@@ -40,21 +40,13 @@ move list which occurred after the timestamp of the move the server was adjustin
 //							FLAG_Custom_1 = 0x20, //Jetpacking
 //							FLAG_Custom_2 = 0x40, 
 //							FLAG_Custom_3 = 0x80, 
-UENUM(BlueprintType)
-enum class EFuelResourceMode : uint8
-{
-	NoResourceCost UMETA(DisplayName = "NoResourceCost"),
-	SprintCost UMETA(DisplayName = "SprintCost"),
-	JetpackCost UMETA(DisplayName = "JetpackCost"),
-	BothCost UMETA(DisplayName = "BothCost")
-};
 
 UCLASS()
-class AMC_API UAdvancedMovementComponent : public UCharacterMovementComponent
+class AMC_API UAMC_MovementComponent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 public:
-	UAdvancedMovementComponent();
+	UAMC_MovementComponent();
 	friend class FSavedMove_AdvancedMovement;
 	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	virtual class FNetworkPredictionData_Client* GetPredictionData_Client() const override;
@@ -66,102 +58,90 @@ public:
 	* Event triggered at the end of a movement update. If scoped movement updates are enabled (bEnableScopedMovementUpdates), this is within such a scope.
 	* If that is not desired, bind to the CharacterOwner's OnMovementUpdated event instead, as that is triggered after the scoped movement update.
 	*/
-	virtual void OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity) override;	
+	virtual void OnMovementUpdated(float DeltaSeconds, const FVector & OldLocation, const FVector & OldVelocity) override;
 
 	uint8 bWantsToSprint : 1;
 	uint8 bWantsToJetpack : 1;
 	FVector MoveDirection;
 
+	bool CanJetpack();
+
 	void SetJetpacking(bool bIsJetpacking);
+	//Gets Jetpack Speed
+	UFUNCTION(BlueprintCallable)
+	float GetJetpackSpeed();
+
+	bool CanSprint();
+
 	void SetSprinting(bool bIsSprinting);
+	//Gets Sprint Speed
+	UFUNCTION(BlueprintCallable)
+	float GetSprintingSpeed();
 
 	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintSpeedCurve"))
 	float SprintSpeedMultiplier;
 	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintAccelearationCurve"))
 	float SprintAccelerationMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintResourceCurve"))
-	float SprintResourceCost;
 	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintSpeedCurve"))
 	UCurveFloat* SprintSpeedMultiplierCurve;
 	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintAccelerationCurve"))
 	UCurveFloat* SprintAccelerationMultiplierCurve;
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintResourceCurve"))
-	UCurveFloat* SprintResourceCostCurve;
+	//Is Sprint Enabled
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	bool bSprintEnabled;
 	//Use a float curve for max speed
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	bool bSprintSpeedCurve;
 	//Use a float curve for acceleration
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	bool bSprintAccelerationCurve;
-	//Use a float curve for sprints resources
-	UPROPERTY(EditAnywhere, Category = "Sprint")
-	bool bSprintResourceCurve;
-	//Sprint will use the grouped resources if checked
-	UPROPERTY(EditAnywhere, Category = "Sprint")
-	bool bSprintUseGroupedResources;
-	//Used to keep from reactivation 0 = no cooldown
-	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
-	float SprintReactivateCooldown;
-	//Scales the cost of resources in air
-	UPROPERTY(EditAnywhere, Category = "Sprint")
-	float SprintAirResourceScale;
 	//Scales the effects of sprint in air
 	UPROPERTY(EditAnywhere, Category = "Sprint")
-	float SprintAirScale; 
+	float SprintAirScale;
 	UPROPERTY(EditAnywhere, Category = "Sprint")
 	bool bAllowMantainingZVelocity;
 	//Value between 0-1, used to "soften" zVelocity changes when sprinting in air
 	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
 	float MaintainZVelocityRate;
+	//Max hold time on sprint
+	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
+	float MaxHoldSprintTime;
 
 	float SprintTimeHeldDown;
 
 	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackSpeedCurve"))
-	float JetpackSpeedMultiplier;
+	float JetpackForce;
 	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackAccelearationCurve"))
 	float JetpackAccelerationMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackResourceCurve"))
-	float JetpackResourceCost;
 	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackSpeedCurve"))
-	UCurveFloat* JetpackSpeedMultiplierCurve;
+	UCurveFloat* JetpackForceCurve;
 	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackAccelerationCurve"))
 	UCurveFloat* JetpackAccelerationMultiplierCurve;
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackResourceCurve"))
-	UCurveFloat* JetpackResourceCostCurve;
+	//Is Jetpack Enabled
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	bool bJetpackEnabled;
 	//Use a float curve for max speed
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	bool bJetpackSpeedCurve;
 	//Use a float curve for acceleration
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	bool bJetpackAccelerationCurve;
-	//Use a float curve for Jetpacks resources
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
-	bool bJetpackResourceCurve;
-	//Jetpack will use the grouped resources if checked
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
-	bool bJetpackUseGroupedResources;
-	//Used to keep from reactivation 0 = no cooldown
-	UPROPERTY(EditAnywhere, Category = "Jetpack", meta=(ClampMin=0))
-	float JetpackReactivateCooldown;
 	//Scales the cost of resources in air
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
-	float JetpackAirResourceScale;
-	//Scales the effects of Jetpack in air
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	float JetpackAirScale;
 	//Sets how much Vecloity.x and Vecloity.y the jetpack has, setting to value too high will exponentially increase X and Y Speed
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	float JetpackForwardMomentumScale;
+	//Max hold time on jetpack
+	UPROPERTY(EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
+	float MaxHoldJetpackTime;
 
 	float JetpackTimeHeldDown;
 
-	//How you want resources to be used
-	UPROPERTY(EditAnywhere, Category = "Resource")
-	EFuelResourceMode ResourceMode;
-	//Dont use resources on ground
-	UPROPERTY(EditAnywhere, Category = "Resource")
-	bool bUseResourceOnGround;
-
+	UPROPERTY(EditAnywhere, Category = "AMC|Config")
+	float MaxXYVelocity;
+	UPROPERTY(EditAnywhere, Category = "AMC|Config")
+	float MaxZVelocity;
 
 };
 
