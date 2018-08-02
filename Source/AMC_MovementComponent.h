@@ -137,7 +137,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackAccelerationCurve"))
 	UCurveFloat* JetpackAccelerationMultiplierCurve;
 	//Is Jetpack Enabled
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(EditAnywhere, Category = "Jetpack")
 	bool bJetpackEnabled;
 	//Use a float curve for max speed
 	UPROPERTY(EditAnywhere, Category = "Jetpack")
