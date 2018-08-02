@@ -18,7 +18,8 @@ UAMC_MovementComponent::UAMC_MovementComponent()
 	MaxHoldSprintTime = 1.f;
 	MaxXYVelocity = 4096;
 	MaxZVelocity = 4096;
-
+	bJetpackEnabled = true;
+	bSprintEnabled = true;
 }
 
 void UAMC_MovementComponent::UpdateFromCompressedFlags(uint8 Flags)
@@ -138,10 +139,15 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 }
 
-bool UAMC_MovementComponent::CanJetpack()
+bool UAMC_MovementComponent::CanJetpack() const
 {
 	//Allow for adding cooldowns or resources checks
 	return (bJetpackEnabled);
+}
+
+void UAMC_MovementComponent::SetJetpackEnabled(bool bIsJetpackEnabled)
+{
+	bJetpackEnabled = bIsJetpackEnabled;
 }
 
 void UAMC_MovementComponent::SetJetpacking(bool bIsJetpacking)
@@ -161,10 +167,15 @@ float UAMC_MovementComponent::GetJetpackSpeed()
 	}
 }
 
-bool UAMC_MovementComponent::CanSprint()
+bool UAMC_MovementComponent::CanSprint() const
 {
 	//Allow for adding cooldowns or resources checks
 	return (bSprintEnabled);
+}
+
+void UAMC_MovementComponent::SetSprintEnabled(bool bIsSprintEnabled)
+{
+	bSprintEnabled = bIsSprintEnabled;
 }
 
 void UAMC_MovementComponent::SetSprinting(bool bIsSprinting)

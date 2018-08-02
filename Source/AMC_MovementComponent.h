@@ -64,15 +64,34 @@ public:
 	uint8 bWantsToJetpack : 1;
 	FVector MoveDirection;
 
-	bool CanJetpack();
 
+	//************************************
+	// Method:    CanJetpack
+	// FullName:  UAMC_MovementComponent::CanJetpack
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: Checks if the movement component should activate Jetpack
+	//************************************
+	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
+	bool CanJetpack() const;
+
+	void SetJetpackEnabled(bool bIsJetpackEnabled);
 	void SetJetpacking(bool bIsJetpacking);
 	//Gets Jetpack Speed
 	UFUNCTION(BlueprintCallable)
 	float GetJetpackSpeed();
 
-	bool CanSprint();
+	//************************************
+	// Method:    CanSprint
+	// FullName:  UAMC_MovementComponent::CanSprint
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: Checks if the movement component should activate Sprint
+	//************************************
+	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
+	bool CanSprint() const;
 
+	void SetSprintEnabled(bool bIsSprintEnabled);
 	void SetSprinting(bool bIsSprinting);
 	//Gets Sprint Speed
 	UFUNCTION(BlueprintCallable)
