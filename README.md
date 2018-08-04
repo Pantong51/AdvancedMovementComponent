@@ -9,6 +9,10 @@
 * This Repo will only contain updates to these files. It will be up to the user to move to their own project.
 * Feel free to make PR if the base can be upgraded at all. 
 
+# Progress Update Video
+* https://youtu.be/vGw9m7_x2dM
+* Note, All Animations, textures, meshs will never be included in this plugin
+
 # InProgress
 * Quick Dashing Started(8/4/2018)
 * Highlight Reel Started(8/4/2018
