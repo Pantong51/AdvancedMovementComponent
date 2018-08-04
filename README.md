@@ -4,6 +4,7 @@
 # AdvancedMovementComponent
 * Jetpack Added
 * Sprinting Added
+* Quick Dashing Added
 * Curve Options Added
 * Based off CharacterMovementComponent in UE4: Network Ready, Supports Rollbacks, Pretty basic for your own needs
 * This Repo will only contain updates to these files. It will be up to the user to move to their own project.
@@ -14,8 +15,8 @@
 * Note, All Animations, textures, meshs will never be included in this plugin
 
 # InProgress
-* Quick Dashing Started(8/4/2018)
 * Highlight Reel Started(8/4/2018
+* Listen Server Bug Fix
 
 # ToDo
 * Wall Running
