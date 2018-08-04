@@ -9,11 +9,13 @@
 * This Repo will only contain updates to these files. It will be up to the user to move to their own project.
 * Feel free to make PR if the base can be upgraded at all. 
 
+# InProgress
+* Quick Dashing Started(8/4/2018)
+* Highlight Reel Started(8/4/2018
+
 # ToDo
 * Wall Running
-* Quick Dashing
 * Create 3 Video Tutorials for this
-
 * 1: How to configure
 * 2: How to intrigrate to Shooter Game
 * 3: How to extend this code to support custom logic
