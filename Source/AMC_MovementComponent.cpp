@@ -3,21 +3,22 @@
 #include "AMC_MovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Curves/CurveFloat.h"
+#include "AMC.h"
 
 UAMC_MovementComponent::UAMC_MovementComponent()
 {
 	JetpackForce = 1500.f;
 	JetpackForwardMomentumScale = .5f;
-	JetpackAccelerationMultiplier = 4.f;
+	JetpackAccelerationMultiplier = 1.5f;
 	AirControl = .95;
 	bAllowMantainingZVelocity = true;
-	SprintSpeedMultiplier = 4.f;
-	SprintAccelerationMultiplier = 4.f;
-	MaintainZVelocityRate = .05f;
+	SprintSpeedMultiplier = 1.5f;
+	SprintAccelerationMultiplier = 1.5f;
+	MaintainZVelocityRate = .15f;
 	MaxHoldJetpackTime = 1.f;
 	MaxHoldSprintTime = 1.f;
-	MaxXYVelocity = 4096;
-	MaxZVelocity = 4096;
+	MaxXYVelocity = 2048;
+	MaxZVelocity = 2048;
 	bJetpackEnabled = true;
 	bSprintEnabled = true;
 }
@@ -92,6 +93,7 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 
 	if (CanJetpack() == true && bWantsToJetpack == true)
 	{
+		bIsJetpacking = true;
 		JetpackTimeHeldDown = FMath::Clamp(JetpackTimeHeldDown + DeltaSeconds, 0.f, MaxHoldJetpackTime);
 		if (bJetpackSpeedCurve)
 		{
@@ -110,10 +112,12 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 	}
 	else
 	{
+		bIsJetpacking = false;
 		JetpackTimeHeldDown = 0;
 	}
 	if (CanSprint() == true && bWantsToSprint == true)
 	{
+		bIsSprinting = true;
 		SprintTimeHeldDown = FMath::Clamp(SprintTimeHeldDown + DeltaSeconds, 0.f, MaxHoldSprintTime);
 		if (bWantsToJetpack == false && bAllowMantainingZVelocity)
 		{
@@ -122,8 +126,10 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 	}
 	else
 	{
+		bIsSprinting = false;
 		SprintTimeHeldDown = 0;
 	}
+	//Limit Max Velocity
 	if (Velocity.X > MaxXYVelocity)
 	{
 		Velocity.X = MaxXYVelocity;
@@ -139,6 +145,42 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 	Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
 }
 
+bool UAMC_MovementComponent::DoJump(bool bReplayingMoves)
+{
+	if (Super::DoJump(bReplayingMoves))
+	{
+		JumpCount++;
+		if (bNeedToJumpBeforeJetpack)
+		{
+			if (JumpCount > 1)
+			{
+				SetJetpacking(true);
+				Velocity.Z = 0;
+				return false;
+			}
+		}
+		else
+		{
+			SetJetpacking(true);
+			Velocity.Z = 0;
+			return false;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool UAMC_MovementComponent::CanJump()
+{
+	return (IsMovingOnGround() || JumpCount >= 0) && CanEverJump();
+}
+
+void UAMC_MovementComponent::ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations)
+{
+	JumpCount = 0;
+	Super::ProcessLanded(Hit, remainingTime, Iterations);
+}
+
 bool UAMC_MovementComponent::CanJetpack() const
 {
 	//Allow for adding cooldowns or resources checks
@@ -148,6 +190,11 @@ bool UAMC_MovementComponent::CanJetpack() const
 void UAMC_MovementComponent::SetJetpackEnabled(bool bIsJetpackEnabled)
 {
 	bJetpackEnabled = bIsJetpackEnabled;
+}
+
+bool UAMC_MovementComponent::GetIsJetpacking() const
+{
+	return bIsJetpacking;
 }
 
 void UAMC_MovementComponent::SetJetpacking(bool bIsJetpacking)
@@ -178,6 +225,11 @@ void UAMC_MovementComponent::SetSprintEnabled(bool bIsSprintEnabled)
 	bSprintEnabled = bIsSprintEnabled;
 }
 
+bool UAMC_MovementComponent::GetIsSprinting() const
+{
+	return bIsSprinting;
+}
+
 void UAMC_MovementComponent::SetSprinting(bool bIsSprinting)
 {
 	bWantsToSprint = bIsSprinting;
@@ -206,6 +258,7 @@ void FSavedMove_AdvancedMovement::Clear()
 	SavedMoveDirection = FVector::ZeroVector;
 	SavedSprintTimeHelodDown = 0.f;
 	SavedJetpackTimeHeldDown = 0.f;
+	SavedJumpCount = 0;
 }
 
 uint8 FSavedMove_AdvancedMovement::GetCompressedFlags() const
@@ -232,6 +285,10 @@ bool FSavedMove_AdvancedMovement::CanCombineWith(const FSavedMovePtr& NewMove, A
 	{
 		return false;
 	}
+	if (SavedJumpCount != ((FSavedMove_AdvancedMovement*)&NewMove)->SavedJumpCount)
+	{
+		return false;
+	}
 	return Super::CanCombineWith(NewMove, Character, MaxDelta);
 }
 
@@ -246,6 +303,7 @@ void FSavedMove_AdvancedMovement::SetMoveFor(ACharacter* Character, float InDelt
 		SavedMoveDirection = CharMov->MoveDirection;
 		SavedJetpackTimeHeldDown = CharMov->JetpackTimeHeldDown;
 		SavedSprintTimeHelodDown = CharMov->SprintTimeHeldDown;
+		SavedJumpCount = CharMov->JumpCount;
 	}
 }
 
@@ -260,6 +318,7 @@ void FSavedMove_AdvancedMovement::PrepMoveFor(ACharacter* Character)
 		CharMov->bWantsToSprint = bSavedWantsToSprint;
 		CharMov->SprintTimeHeldDown = SavedSprintTimeHelodDown;
 		CharMov->JetpackTimeHeldDown = SavedJetpackTimeHeldDown;
+		CharMov->JumpCount = SavedJumpCount;
 
 	}
 }

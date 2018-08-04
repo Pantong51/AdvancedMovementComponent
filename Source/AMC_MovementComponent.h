@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Curves/CurveFloat.h"
+#include "AMC.h"
 #include "AMC_MovementComponent.generated.h"
 
 /*
@@ -36,10 +37,10 @@ move list which occurred after the timestamp of the move the server was adjustin
 //							FLAG_Reserved_1 = 0x04,	// Reserved for future use
 //							FLAG_Reserved_2 = 0x08,	// Reserved for future use
 //							// Remaining bit masks are available for custom flags.
-//							FLAG_Custom_0 = 0x10, //Sprinting
-//							FLAG_Custom_1 = 0x20, //Jetpacking
-//							FLAG_Custom_2 = 0x40, 
-//							FLAG_Custom_3 = 0x80, 
+//							FLAG_Custom_0 = 0x10, // Sprinting
+//							FLAG_Custom_1 = 0x20, // Jetpacking
+//							FLAG_Custom_2 = 0x40, // Quick Dodge
+//							FLAG_Custom_3 = 0x80, // Wall Running
 
 UCLASS()
 class AMC_API UAMC_MovementComponent : public UCharacterMovementComponent
@@ -54,6 +55,8 @@ public:
 	void ServerSetMoveDirection(const FVector& MoveDir);
 	virtual float GetMaxSpeed() const override;
 	virtual float GetMaxAcceleration() const override;
+	virtual bool DoJump(bool bReplayingMoves) override;
+	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
 	/**
 	* Event triggered at the end of a movement update. If scoped movement updates are enabled (bEnableScopedMovementUpdates), this is within such a scope.
 	* If that is not desired, bind to the CharacterOwner's OnMovementUpdated event instead, as that is triggered after the scoped movement update.
@@ -64,6 +67,20 @@ public:
 	uint8 bWantsToJetpack : 1;
 	FVector MoveDirection;
 
+	//************************************
+	// Method:    CanJump
+	// FullName:  UAMC_MovementComponent::CanJump
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: Checks if can jump
+	//************************************
+	bool CanJump();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
+	bool bNeedToJumpBeforeJetpack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
+	int32 JumpCount;
 
 	//************************************
 	// Method:    CanJetpack
@@ -73,9 +90,20 @@ public:
 	// Qualifier: Checks if the movement component should activate Jetpack
 	//************************************
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
-	bool CanJetpack() const;
+	virtual bool CanJetpack() const;
 
 	void SetJetpackEnabled(bool bIsJetpackEnabled);
+
+	//************************************
+	// Method:    GetIsJetpacking
+	// FullName:  UAMC_MovementComponent::GetIsJetpacking
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: true if currently jetpacking
+	//************************************
+	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
+	bool GetIsJetpacking() const;
+
 	void SetJetpacking(bool bIsJetpacking);
 	//Gets Jetpack Speed
 	UFUNCTION(BlueprintCallable)
@@ -89,9 +117,20 @@ public:
 	// Qualifier: Checks if the movement component should activate Sprint
 	//************************************
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
-	bool CanSprint() const;
+	virtual bool CanSprint() const;
 
 	void SetSprintEnabled(bool bIsSprintEnabled);
+
+	//************************************
+	// Method:    GetIsSprinting
+	// FullName:  UAMC_MovementComponent::GetIsSprinting
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: true if currently sprinting
+	//************************************
+	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
+	bool GetIsSprinting() const;
+
 	void SetSprinting(bool bIsSprinting);
 	//Gets Sprint Speed
 	UFUNCTION(BlueprintCallable)
@@ -125,6 +164,7 @@ public:
 	//Max hold time on sprint
 	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
 	float MaxHoldSprintTime;
+	bool bIsSprinting;
 
 	float SprintTimeHeldDown;
 
@@ -154,6 +194,7 @@ public:
 	//Max hold time on jetpack
 	UPROPERTY(EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
 	float MaxHoldJetpackTime;
+	bool bIsJetpacking;
 
 	float JetpackTimeHeldDown;
 
@@ -180,6 +221,7 @@ public:
 	FVector SavedMoveDirection;
 	float SavedJetpackTimeHeldDown;
 	float SavedSprintTimeHelodDown;
+	int SavedJumpCount;
 
 };
 

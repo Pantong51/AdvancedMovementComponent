@@ -105,8 +105,17 @@ public:
 	//************************************
 	void LookUp(float Rate);
 
+	//value between -1 and 1 for the forward direction of the player
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float ForwardDirection;
+	//value between -1 and 1 for the right direction of the player
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
+	float RightDirection;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
 	float BaseTurnRate;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Controls")
 	float BaseLookUpRate;
+
+	bool CanJumpInternal_Implementation() const override;
 };

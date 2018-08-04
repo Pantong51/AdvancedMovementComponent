@@ -18,13 +18,14 @@ AAMC_Character::AAMC_Character(const FObjectInitializer& ObjectInitializer)
 void AAMC_Character::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
 void AAMC_Character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	ForwardDirection = (FVector::DotProduct(GetActorForwardVector(), GetVelocity().GetSafeNormal()));
+	RightDirection = (FVector::DotProduct(GetActorRightVector(), GetVelocity().GetSafeNormal()));
 }
 
 // Called to bind functionality to input
@@ -39,6 +40,8 @@ void AAMC_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAxis("MoveRight", this, &AAMC_Character::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &AAMC_Character::TurnRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &AAMC_Character::LookUp);
+
+
 }
 
 
@@ -47,9 +50,6 @@ void AAMC_Character::StartJetpack()
 	UAMC_MovementComponent* MovCom = Cast<UAMC_MovementComponent>(GetCharacterMovement());
 	if (MovCom)
 	{
-
-		MovCom->SetJetpacking(true);
-		//The jetpack uses the falling state to deal with gravity. It's not the cleanest but this is the current best way to transition from group to air
 		Jump();
 	}
 }
@@ -114,3 +114,13 @@ void AAMC_Character::LookUp(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
+bool AAMC_Character::CanJumpInternal_Implementation() const
+{
+	bool bCanJump = Super::CanJumpInternal_Implementation();
+	UAMC_MovementComponent* MovCom = Cast<UAMC_MovementComponent>(GetCharacterMovement());
+	if (!bCanJump && MovCom)
+	{
+ 		bCanJump = MovCom->CanJump();
+	}
+	return bCanJump;
+}
