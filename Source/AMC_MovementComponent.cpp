@@ -12,6 +12,7 @@ UAMC_MovementComponent::UAMC_MovementComponent()
 	JetpackAccelerationMultiplier = 1.5f;
 	AirControl = .95;
 	bAllowMantainingZVelocity = true;
+	bAllowMantainingXYVelocity = true;
 	SprintSpeedMultiplier = 1.5f;
 	SprintAccelerationMultiplier = 1.5f;
 	MaintainZVelocityRate = .15f;
@@ -21,6 +22,10 @@ UAMC_MovementComponent::UAMC_MovementComponent()
 	MaxZVelocity = 2048;
 	bJetpackEnabled = true;
 	bSprintEnabled = true;
+	bDodgeEnabled = true;
+	DodgeStrength = 2000.f;
+	MaxDodgeDurration = 0.2f;
+	GroundZUp = 50.f;
 }
 
 void UAMC_MovementComponent::UpdateFromCompressedFlags(uint8 Flags)
@@ -28,6 +33,8 @@ void UAMC_MovementComponent::UpdateFromCompressedFlags(uint8 Flags)
 	Super::UpdateFromCompressedFlags(Flags);
 	bWantsToSprint = (Flags&FSavedMove_Character::FLAG_Custom_0) != 0;
 	bWantsToJetpack = (Flags&FSavedMove_Character::FLAG_Custom_1) != 0;
+	bWantsToDodge = (Flags&FSavedMove_Character::FLAG_Custom_2) != 0;
+	bWantsToWallRun = (Flags&FSavedMove_Character::FLAG_Custom_3) != 0;
 }
 
 float UAMC_MovementComponent::GetMaxSpeed() const
@@ -90,7 +97,6 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 			ServerSetMoveDirection(MoveDirection);
 		}
 	}
-
 	if (CanJetpack() == true && bWantsToJetpack == true)
 	{
 		bIsJetpacking = true;
@@ -119,9 +125,17 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 	{
 		bIsSprinting = true;
 		SprintTimeHeldDown = FMath::Clamp(SprintTimeHeldDown + DeltaSeconds, 0.f, MaxHoldSprintTime);
-		if (bWantsToJetpack == false && bAllowMantainingZVelocity)
+		if (bWantsToJetpack == false && IsMovingOnGround() == false)
 		{
-			Velocity.Z = FMath::InterpEaseInOut(Velocity.Z, Velocity.Z * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
+			if (bAllowMantainingZVelocity)
+			{
+				Velocity.Z = FMath::InterpEaseInOut(Velocity.Z, Velocity.Z * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
+			}
+			if (bAllowMantainingXYVelocity)
+			{
+				Velocity.X = FMath::InterpEaseInOut(Velocity.X, Velocity.X * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
+				Velocity.Y = FMath::InterpEaseInOut(Velocity.Y, Velocity.Y * MaintainZVelocityRate, SprintTimeHeldDown, 2.0f);
+			}
 		}
 	}
 	else
@@ -129,6 +143,44 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 		bIsSprinting = false;
 		SprintTimeHeldDown = 0;
 	}
+
+	if (CanDodge() == true && bWantsToDodge == true)
+	{
+		DodgeDurration += DeltaSeconds;
+		FVector MoveDir = MoveDirection;
+		MoveDir.Normalize();
+		MoveDir.Z = 0.f;
+
+		if (bDodgeCurve == true)
+		{
+			float CurveValue = 0;
+			CurveValue = DodgeStrengthCurve->GetFloatValue(DodgeDurration/MaxDodgeDurration);
+			MoveDir = MoveDir * CurveValue;
+		}
+		else
+		{
+			MoveDir = MoveDir * DodgeStrength;
+		}
+		if (IsMovingOnGround() == true)
+		{
+			MoveDir.Z += GroundZUp;
+			Launch(MoveDir);
+		}
+		else
+		{
+			Velocity.Z = FMath::InterpExpoInOut(Velocity.Z, MoveDir.Z, (DodgeDurration / MaxDodgeDurration));
+			Velocity.X = FMath::InterpExpoInOut(Velocity.X, MoveDir.X, (DodgeDurration / MaxDodgeDurration));
+			Velocity.Y = FMath::InterpExpoInOut(Velocity.Y, MoveDir.Y, (DodgeDurration / MaxDodgeDurration));
+		}
+
+		if (DodgeDurration >= MaxDodgeDurration)
+		{
+			bWantsToDodge = false;
+			bIsDodging = false;
+			DodgeDurration = 0.f;
+		}
+	}
+
 	//Limit Max Velocity
 	if (Velocity.X > MaxXYVelocity)
 	{
@@ -240,6 +292,21 @@ float UAMC_MovementComponent::GetSprintingSpeed()
 	return GetMaxSpeed();
 }
 
+bool UAMC_MovementComponent::CanDodge() const
+{
+	return (bDodgeEnabled && !bIsDodging);
+}
+
+void UAMC_MovementComponent::EnableDodge(bool bIsDodgeEnabled)
+{
+	bDodgeEnabled = bIsDodgeEnabled;
+}
+
+void UAMC_MovementComponent::DoDodge()
+{
+	bWantsToDodge = true;
+}
+
 void UAMC_MovementComponent::ServerSetMoveDirection_Implementation(const FVector& MoveDir)
 {
 	MoveDirection = MoveDir;
@@ -255,10 +322,13 @@ void FSavedMove_AdvancedMovement::Clear()
 	Super::Clear();
 	bSavedWantsToSprint = false;
 	bSavedWantsToJetpack = false;
+	bSavedWantsToDodge = false;
+	bSavedWantsToWallRun = false;
 	SavedMoveDirection = FVector::ZeroVector;
 	SavedSprintTimeHelodDown = 0.f;
 	SavedJetpackTimeHeldDown = 0.f;
 	SavedJumpCount = 0;
+	SavedDodgeTime = 0;
 }
 
 uint8 FSavedMove_AdvancedMovement::GetCompressedFlags() const
@@ -271,6 +341,14 @@ uint8 FSavedMove_AdvancedMovement::GetCompressedFlags() const
 	if (bSavedWantsToJetpack)
 	{
 		Result |= FLAG_Custom_1;
+	}
+	if (bSavedWantsToDodge)
+	{
+		Result |= FLAG_Custom_2;
+	}
+	if (bSavedWantsToWallRun)
+	{
+		Result |= FLAG_Custom_3;
 	}
 	return Result;
 }
@@ -289,6 +367,22 @@ bool FSavedMove_AdvancedMovement::CanCombineWith(const FSavedMovePtr& NewMove, A
 	{
 		return false;
 	}
+	if (SavedDodgeTime != ((FSavedMove_AdvancedMovement*)&NewMove)->SavedDodgeTime)
+	{
+		return false;
+	}
+	if (SavedMoveDirection != ((FSavedMove_AdvancedMovement*)&NewMove)->SavedMoveDirection)
+	{
+		return false;
+	}
+	if (bSavedWantsToDodge != ((FSavedMove_AdvancedMovement*)&NewMove)->bSavedWantsToDodge)
+	{
+		return false;
+	}
+	if (bSavedWantsToWallRun != ((FSavedMove_AdvancedMovement*)&NewMove)->bSavedWantsToWallRun)
+	{
+		return false;
+	}
 	return Super::CanCombineWith(NewMove, Character, MaxDelta);
 }
 
@@ -300,10 +394,13 @@ void FSavedMove_AdvancedMovement::SetMoveFor(ACharacter* Character, float InDelt
 	{
 		bSavedWantsToSprint = CharMov->bWantsToSprint;
 		bSavedWantsToJetpack = CharMov->bWantsToJetpack;
+		bSavedWantsToDodge = CharMov->bWantsToDodge;
+		bSavedWantsToWallRun = CharMov->bWantsToWallRun;
 		SavedMoveDirection = CharMov->MoveDirection;
 		SavedJetpackTimeHeldDown = CharMov->JetpackTimeHeldDown;
 		SavedSprintTimeHelodDown = CharMov->SprintTimeHeldDown;
 		SavedJumpCount = CharMov->JumpCount;
+		SavedDodgeTime = CharMov->DodgeDurration;
 	}
 }
 
@@ -315,10 +412,13 @@ void FSavedMove_AdvancedMovement::PrepMoveFor(ACharacter* Character)
 	{
 		CharMov->MoveDirection = SavedMoveDirection;
 		CharMov->bWantsToJetpack = bSavedWantsToJetpack;
+		CharMov->bWantsToDodge = bSavedWantsToDodge;
+		CharMov->bWantsToWallRun = bSavedWantsToWallRun;
 		CharMov->bWantsToSprint = bSavedWantsToSprint;
 		CharMov->SprintTimeHeldDown = SavedSprintTimeHelodDown;
 		CharMov->JetpackTimeHeldDown = SavedJetpackTimeHeldDown;
 		CharMov->JumpCount = SavedJumpCount;
+		CharMov->DodgeDurration = SavedDodgeTime;
 
 	}
 }
@@ -332,6 +432,7 @@ FNetworkPredictionData_Client_AdvancedMovement::FNetworkPredictionData_Client_Ad
 class FNetworkPredictionData_Client* UAMC_MovementComponent::GetPredictionData_Client() const
 {
 	check(PawnOwner != NULL);
+	//Bug here I think on listen server, not sure if client or lsiten server yet
 	check(PawnOwner->Role < ROLE_Authority);
 
 	if (!ClientPredictionData)

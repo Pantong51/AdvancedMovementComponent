@@ -36,6 +36,7 @@ void AAMC_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AAMC_Character::StopSprint);
 	PlayerInputComponent->BindAction("Jetpack", IE_Pressed, this, &AAMC_Character::StartJetpack);
 	PlayerInputComponent->BindAction("Jetpack", IE_Released, this, &AAMC_Character::StopJetpack);
+	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &AAMC_Character::DoDodge);
 	PlayerInputComponent->BindAxis("MoveForward", this, &AAMC_Character::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AAMC_Character::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &AAMC_Character::TurnRate);
@@ -112,6 +113,15 @@ void AAMC_Character::TurnRate(float Rate)
 void AAMC_Character::LookUp(float Rate)
 {
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AAMC_Character::DoDodge()
+{
+	UAMC_MovementComponent* MovCom = Cast<UAMC_MovementComponent>(GetCharacterMovement());
+	if (MovCom)
+	{
+		MovCom->DoDodge();
+	}
 }
 
 bool AAMC_Character::CanJumpInternal_Implementation() const

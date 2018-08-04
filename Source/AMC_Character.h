@@ -105,6 +105,15 @@ public:
 	//************************************
 	void LookUp(float Rate);
 
+	//************************************
+	// Method:    DoDodge
+	// FullName:  AAMC_Character::DoDodge
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: Does the Dodge
+	//************************************
+	void DoDodge();
+
 	//value between -1 and 1 for the forward direction of the player
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement")
 	float ForwardDirection;

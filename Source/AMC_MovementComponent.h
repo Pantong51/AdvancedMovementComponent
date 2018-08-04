@@ -65,6 +65,9 @@ public:
 
 	uint8 bWantsToSprint : 1;
 	uint8 bWantsToJetpack : 1;
+	uint8 bWantsToDodge : 1;
+	uint8 bWantsToWallRun : 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FVector MoveDirection;
 
 	//************************************
@@ -135,6 +138,23 @@ public:
 	//Gets Sprint Speed
 	UFUNCTION(BlueprintCallable)
 	float GetSprintingSpeed();
+	//Sets can dodge
+	UFUNCTION(BlueprintCallable)
+	virtual bool CanDodge() const;
+
+	//************************************
+	// Method:    EnableDodge
+	// FullName:  UAMC_MovementComponent::EnableDodge
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: Enable/Disable Dodge
+	// Parameter: bIsDodgeEnabled
+	//************************************
+	UFUNCTION(BlueprintCallable)
+	void EnableDodge(bool bIsDodgeEnabled);
+	bool bDodgeEnabled;
+
+	void DoDodge();
 
 	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintSpeedCurve"))
 	float SprintSpeedMultiplier;
@@ -155,12 +175,14 @@ public:
 	bool bSprintAccelerationCurve;
 	//Scales the effects of sprint in air
 	UPROPERTY(EditAnywhere, Category = "Sprint")
-	float SprintAirScale;
-	UPROPERTY(EditAnywhere, Category = "Sprint")
 	bool bAllowMantainingZVelocity;
+	UPROPERTY(EditAnywhere, Category = "Sprint")
+	bool bAllowMantainingXYVelocity;
 	//Value between 0-1, used to "soften" zVelocity changes when sprinting in air
 	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
 	float MaintainZVelocityRate;
+	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
+	float MaintainXYVelocityRate;
 	//Max hold time on sprint
 	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
 	float MaxHoldSprintTime;
@@ -198,6 +220,27 @@ public:
 
 	float JetpackTimeHeldDown;
 
+	//Strength of a Dodge
+	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	float DodgeStrength;
+	//Multiplier Addative to a Dodge
+	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	float DodgeAirStrength;
+	UPROPERTY(EditAnywhere, Category = "QuickDodge", AdvancedDisplay, meta = (EditCondition = "bDodgeCurve"))
+	UCurveFloat* DodgeStrengthCurve;
+	//Use curve isntead of float for dodge
+	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	bool bDodgeCurve;
+	//How long the dodge should execute
+	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	float MaxDodgeDurration;
+	//Boost up if on ground
+	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	float GroundZUp;
+
+	bool bIsDodging;
+	float DodgeDurration;
+
 	UPROPERTY(EditAnywhere, Category = "AMC|Config")
 	float MaxXYVelocity;
 	UPROPERTY(EditAnywhere, Category = "AMC|Config")
@@ -218,10 +261,13 @@ public:
 
 	uint8 bSavedWantsToSprint : 1;
 	uint8 bSavedWantsToJetpack : 1;
+	uint8 bSavedWantsToDodge : 1;
+	uint8 bSavedWantsToWallRun : 1;
 	FVector SavedMoveDirection;
 	float SavedJetpackTimeHeldDown;
 	float SavedSprintTimeHelodDown;
 	int SavedJumpCount;
+	float SavedDodgeTime;
 
 };
 
