@@ -146,11 +146,11 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 
 	if (CanDodge() == true && bWantsToDodge == true)
 	{
+		bIsDodging = true;
 		DodgeDurration += DeltaSeconds;
 		FVector MoveDir = MoveDirection;
 		MoveDir.Normalize();
 		MoveDir.Z = 0.f;
-
 		if (bDodgeCurve == true)
 		{
 			float CurveValue = 0;
@@ -164,7 +164,7 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 		if (IsMovingOnGround() == true)
 		{
 			MoveDir.Z += GroundZUp;
-			Launch(MoveDir);
+			Velocity = MoveDir;
 		}
 		else
 		{
@@ -207,14 +207,14 @@ bool UAMC_MovementComponent::DoJump(bool bReplayingMoves)
 			if (JumpCount > 1)
 			{
 				SetJetpacking(true);
-				Velocity.Z = 0;
+				//Velocity.Z = 0;
 				return false;
 			}
 		}
 		else
 		{
 			SetJetpacking(true);
-			Velocity.Z = 0;
+			//Velocity.Z = 0;
 			return false;
 		}
 		return true;
@@ -254,7 +254,7 @@ void UAMC_MovementComponent::SetJetpacking(bool bIsJetpacking)
 	bWantsToJetpack = bIsJetpacking;
 }
 
-float UAMC_MovementComponent::GetJetpackSpeed()
+float UAMC_MovementComponent::GetJetpackSpeed() const
 {
 	if (bJetpackSpeedCurve)
 	{
@@ -287,14 +287,14 @@ void UAMC_MovementComponent::SetSprinting(bool bIsSprinting)
 	bWantsToSprint = bIsSprinting;
 }
 
-float UAMC_MovementComponent::GetSprintingSpeed()
+float UAMC_MovementComponent::GetSprintingSpeed() const
 {
 	return GetMaxSpeed();
 }
 
 bool UAMC_MovementComponent::CanDodge() const
 {
-	return (bDodgeEnabled && !bIsDodging);
+	return (bDodgeEnabled);
 }
 
 void UAMC_MovementComponent::EnableDodge(bool bIsDodgeEnabled)
@@ -305,6 +305,11 @@ void UAMC_MovementComponent::EnableDodge(bool bIsDodgeEnabled)
 void UAMC_MovementComponent::DoDodge()
 {
 	bWantsToDodge = true;
+}
+
+bool UAMC_MovementComponent::GetIsDodging() const
+{
+	return bIsDodging;
 }
 
 void UAMC_MovementComponent::ServerSetMoveDirection_Implementation(const FVector& MoveDir)
@@ -432,8 +437,8 @@ FNetworkPredictionData_Client_AdvancedMovement::FNetworkPredictionData_Client_Ad
 class FNetworkPredictionData_Client* UAMC_MovementComponent::GetPredictionData_Client() const
 {
 	check(PawnOwner != NULL);
-	//Bug here I think on listen server, not sure if client or lsiten server yet
-	check(PawnOwner->Role < ROLE_Authority);
+	//Bug here I think on listen server, not sure if client or lsiten server yet Commenting out seams to be ok, testing on dedi and listen and issue is fixed when commenting out
+	//check(PawnOwner->Role < ROLE_Authority);
 
 	if (!ClientPredictionData)
 	{

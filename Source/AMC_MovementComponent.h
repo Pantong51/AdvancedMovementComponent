@@ -79,12 +79,6 @@ public:
 	//************************************
 	bool CanJump();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
-	bool bNeedToJumpBeforeJetpack;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
-	int32 JumpCount;
-
 	//************************************
 	// Method:    CanJetpack
 	// FullName:  UAMC_MovementComponent::CanJetpack
@@ -95,6 +89,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
 	virtual bool CanJetpack() const;
 
+	//************************************
+	// Method:    SetJetpackEnabled
+	// FullName:  UAMC_MovementComponent::SetJetpackEnabled
+	// Access:    public 
+	// Returns:   Set Jetpack Enabled
+	// Qualifier: 	Set Jetpack Enabled
+	// Parameter: bool bIsJetpackEnabled
+	//************************************
 	void SetJetpackEnabled(bool bIsJetpackEnabled);
 
 	//************************************
@@ -107,10 +109,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
 	bool GetIsJetpacking() const;
 
+	//************************************
+	// Method:    SetJetpacking
+	// FullName:  UAMC_MovementComponent::SetJetpacking
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: preform sprint
+	// Parameter: bool bIsJetpacking
+	//************************************
 	void SetJetpacking(bool bIsJetpacking);
-	//Gets Jetpack Speed
+
+	//************************************
+	// Method:    GetJetpackSpeed
+	// FullName:  UAMC_MovementComponent::GetJetpackSpeed
+	// Access:    public 
+	// Returns:   float
+	// Qualifier: Get the jetpack speed from curve or float
+	//************************************
 	UFUNCTION(BlueprintCallable)
-	float GetJetpackSpeed();
+	float GetJetpackSpeed() const;
 
 	//************************************
 	// Method:    CanSprint
@@ -122,6 +139,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
 	virtual bool CanSprint() const;
 
+	//************************************
+	// Method:    SetSprintEnabled
+	// FullName:  UAMC_MovementComponent::SetSprintEnabled
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: Set Sprint Enabled
+	// Parameter: bool bIsSprintEnabled
+	//************************************
 	void SetSprintEnabled(bool bIsSprintEnabled);
 
 	//************************************
@@ -134,11 +159,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "AMC|Checks")
 	bool GetIsSprinting() const;
 
+	//************************************
+	// Method:    SetSprinting
+	// FullName:  UAMC_MovementComponent::SetSprinting
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: Preform Sprint
+	// Parameter: bool bIsSprinting
+	//************************************
 	void SetSprinting(bool bIsSprinting);
-	//Gets Sprint Speed
+
+	//************************************
+	// Method:    GetSprintingSpeed
+	// FullName:  UAMC_MovementComponent::GetSprintingSpeed
+	// Access:    public 
+	// Returns:   float
+	// Qualifier: Get the sprint speed multiplier from curve or float
+	//************************************
 	UFUNCTION(BlueprintCallable)
-	float GetSprintingSpeed();
-	//Sets can dodge
+	float GetSprintingSpeed() const;
+
+	//************************************
+	// Method:    CanDodge
+	// FullName:  UAMC_MovementComponent::CanDodge
+	// Access:    virtual public 
+	// Returns:   bool
+	// Qualifier: const/ Gets can dodge
+	//************************************
 	UFUNCTION(BlueprintCallable)
 	virtual bool CanDodge() const;
 
@@ -152,92 +199,109 @@ public:
 	//************************************
 	UFUNCTION(BlueprintCallable)
 	void EnableDodge(bool bIsDodgeEnabled);
-	bool bDodgeEnabled;
 
+	//************************************
+	// Method:    DoDodge
+	// FullName:  UAMC_MovementComponent::DoDodge
+	// Access:    public 
+	// Returns:   void
+	// Qualifier: Preforms Dodge
+	//************************************
 	void DoDodge();
 
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintSpeedCurve"))
+	//************************************
+	// Method:    GetIsDodging
+	// FullName:  UAMC_MovementComponent::GetIsDodging
+	// Access:    public 
+	// Returns:   bool
+	// Qualifier: const: Get Dodge bool
+	//************************************
+	UFUNCTION(BlueprintCallable)
+	bool GetIsDodging() const;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintSpeedCurve"))
 	float SprintSpeedMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintAccelearationCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "!bSprintAccelearationCurve"))
 	float SprintAccelerationMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintSpeedCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintSpeedCurve"))
 	UCurveFloat* SprintSpeedMultiplierCurve;
-	UPROPERTY(EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintAccelerationCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", AdvancedDisplay, meta = (EditCondition = "bSprintAccelerationCurve"))
 	UCurveFloat* SprintAccelerationMultiplierCurve;
 	//Is Sprint Enabled
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint")
 	bool bSprintEnabled;
 	//Use a float curve for max speed
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint")
 	bool bSprintSpeedCurve;
 	//Use a float curve for acceleration
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint")
 	bool bSprintAccelerationCurve;
 	//Scales the effects of sprint in air
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint")
 	bool bAllowMantainingZVelocity;
-	UPROPERTY(EditAnywhere, Category = "Sprint")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint")
 	bool bAllowMantainingXYVelocity;
 	//Value between 0-1, used to "soften" zVelocity changes when sprinting in air
-	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
 	float MaintainZVelocityRate;
-	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", meta = (ClampMin = 0, ClampMax = 1))
 	float MaintainXYVelocityRate;
 	//Max hold time on sprint
-	UPROPERTY(EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Sprint", meta = (ClampMin = 0))
 	float MaxHoldSprintTime;
-	bool bIsSprinting;
 
+	bool bIsSprinting;
 	float SprintTimeHeldDown;
 
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackSpeedCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackSpeedCurve"))
 	float JetpackForce;
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackAccelearationCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "!bJetpackAccelearationCurve"))
 	float JetpackAccelerationMultiplier;
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackSpeedCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackSpeedCurve"))
 	UCurveFloat* JetpackForceCurve;
-	UPROPERTY(EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackAccelerationCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", AdvancedDisplay, meta = (EditCondition = "bJetpackAccelerationCurve"))
 	UCurveFloat* JetpackAccelerationMultiplierCurve;
 	//Is Jetpack Enabled
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack")
 	bool bJetpackEnabled;
 	//Use a float curve for max speed
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack")
 	bool bJetpackSpeedCurve;
 	//Use a float curve for acceleration
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack")
 	bool bJetpackAccelerationCurve;
 	//Scales the cost of resources in air
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack")
 	float JetpackAirScale;
 	//Sets how much Vecloity.x and Vecloity.y the jetpack has, setting to value too high will exponentially increase X and Y Speed
-	UPROPERTY(EditAnywhere, Category = "Jetpack")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack")
 	float JetpackForwardMomentumScale;
 	//Max hold time on jetpack
-	UPROPERTY(EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
 	float MaxHoldJetpackTime;
-	bool bIsJetpacking;
 
+	bool bIsJetpacking;
 	float JetpackTimeHeldDown;
 
 	//Strength of a Dodge
-	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge")
 	float DodgeStrength;
 	//Multiplier Addative to a Dodge
-	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge")
 	float DodgeAirStrength;
-	UPROPERTY(EditAnywhere, Category = "QuickDodge", AdvancedDisplay, meta = (EditCondition = "bDodgeCurve"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge", AdvancedDisplay, meta = (EditCondition = "bDodgeCurve"))
 	UCurveFloat* DodgeStrengthCurve;
 	//Use curve isntead of float for dodge
-	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge")
 	bool bDodgeCurve;
 	//How long the dodge should execute
-	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge")
 	float MaxDodgeDurration;
 	//Boost up if on ground
-	UPROPERTY(EditAnywhere, Category = "QuickDodge")
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "QuickDodge")
 	float GroundZUp;
 
+	bool bDodgeEnabled;
 	bool bIsDodging;
 	float DodgeDurration;
 
@@ -245,7 +309,10 @@ public:
 	float MaxXYVelocity;
 	UPROPERTY(EditAnywhere, Category = "AMC|Config")
 	float MaxZVelocity;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
+	bool bNeedToJumpBeforeJetpack;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AMC|Config")
+	int32 JumpCount;
 };
 
 /** FSavedMove_MyMovment comes from FSavedMove_Character and represents a saved move on the client that has been sent to the server and might need to be played back. */
@@ -268,7 +335,6 @@ public:
 	float SavedSprintTimeHelodDown;
 	int SavedJumpCount;
 	float SavedDodgeTime;
-
 };
 
 /** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */

@@ -11,7 +11,7 @@
 * Feel free to make PR if the base can be upgraded at all. 
 
 # Progress Update Video
-* https://youtu.be/vGw9m7_x2dM
+* [Advanced Movement Component - now with "Jetpack Sounds"](https://www.youtube.com/watch?v=IPu-ed0Nt4k)
 * Note, All Animations, textures, meshs will never be included in this plugin
 
 # InProgress
