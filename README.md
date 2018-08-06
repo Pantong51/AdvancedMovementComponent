@@ -16,7 +16,6 @@
 
 # InProgress
 * Highlight Reel Started(8/4/2018
-* Listen Server Bug Fix
 
 # ToDo
 * Wall Running
