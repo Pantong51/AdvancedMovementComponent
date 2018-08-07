@@ -15,11 +15,11 @@
 * Note, All Animations, textures, meshs will never be included in this plugin
 
 # InProgress
-* Highlight Reel Started(8/4/2018
+* Highlight Reel Started(8/4/2018) ETA: (8/12/2018)
+* 1: How to configure(8/7/2018) ETA: (8/12/2018)
 
 # ToDo
 * Wall Running
 * Create 3 Video Tutorials for this
-* 1: How to configure
 * 2: How to intrigrate to Shooter Game
 * 3: How to extend this code to support custom logic
