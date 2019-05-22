@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "AMC",
+	"Description": "",
+	"Category": "Movement Logic",
+	"CreatedBy": "Dan \"Pan\" Lott",
+	"CreatedByURL": "https://github.com/Pantong51/AdvancedMovementComponent/blob/master/README.md",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EngineVersion": "4.20.0",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "AMC",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	]
+}

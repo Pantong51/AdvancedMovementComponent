@@ -57,6 +57,7 @@ public:
 	virtual float GetMaxAcceleration() const override;
 	virtual bool DoJump(bool bReplayingMoves) override;
 	virtual void ProcessLanded(const FHitResult& Hit, float remainingTime, int32 Iterations) override;
+	virtual FVector NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const override;
 	/**
 	* Event triggered at the end of a movement update. If scoped movement updates are enabled (bEnableScopedMovementUpdates), this is within such a scope.
 	* If that is not desired, bind to the CharacterOwner's OnMovementUpdated event instead, as that is triggered after the scoped movement update.
@@ -279,6 +280,9 @@ public:
 	//Max hold time on jetpack
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
 	float MaxHoldJetpackTime;
+	//Scales the gravity applied per tick(While Falling)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Jetpack", meta = (ClampMin = 0))
+	float GravityScaleWhileJetpack = 0;
 
 	bool bIsJetpacking;
 	float JetpackTimeHeldDown;

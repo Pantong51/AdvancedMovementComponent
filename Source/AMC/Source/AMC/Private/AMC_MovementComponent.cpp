@@ -233,6 +233,16 @@ void UAMC_MovementComponent::ProcessLanded(const FHitResult& Hit, float remainin
 	Super::ProcessLanded(Hit, remainingTime, Iterations);
 }
 
+FVector UAMC_MovementComponent::NewFallVelocity(const FVector& InitialVelocity, const FVector& Gravity, float DeltaTime) const
+{
+	if (GetIsJetpacking() == true)
+	{
+		return Super::NewFallVelocity(InitialVelocity, (Gravity*GravityScaleWhileJetpack), DeltaTime);
+		//return InitialVelocity;
+	}
+	return Super::NewFallVelocity(InitialVelocity, Gravity, DeltaTime);
+}
+
 bool UAMC_MovementComponent::CanJetpack() const
 {
 	//Allow for adding cooldowns or resources checks
