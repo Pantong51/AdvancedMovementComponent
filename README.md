@@ -15,11 +15,9 @@
 * Note, All Animations, textures, meshs will never be included in this plugin
 
 # InProgress
-* Highlight Reel Started(8/4/2018) ETA: December 2018
 * 1: How to configure(8/7/2018) ETA: December 2018
 * Bug fix: Repeated movement inputs after selecting dodge will change directions during dodge. Needs to be a fixed direction for duration of dodge
 * Feature: Gravity scale while not pressing inputs, float or curve based - used for faster "falling"
-* Feature: Create a c++ Character that exposes more data to Blueprints and remove the auto binding of inputs - Needed for a fully BP character
 * Bug fix: Check limits for speed and velocity changes on XY. Seams to be a bug that going along X or Y at max speed is fine, but user can go at X and Y at max speed which is double actual max speed
 
 # ToDo
