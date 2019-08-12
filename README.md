@@ -15,10 +15,6 @@
 * Note, All Animations, textures, meshs will never be included in this plugin
 
 # InProgress
-* 1: How to configure(8/7/2018) ETA: December 2018
-* Bug fix: Repeated movement inputs after selecting dodge will change directions during dodge. Needs to be a fixed direction for duration of dodge
-* Feature: Gravity scale while not pressing inputs, float or curve based - used for faster "falling"
-* Bug fix: Check limits for speed and velocity changes on XY. Seams to be a bug that going along X or Y at max speed is fine, but user can go at X and Y at max speed which is double actual max speed
 
 # ToDo
 * Wall Running
