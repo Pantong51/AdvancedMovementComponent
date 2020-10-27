@@ -199,10 +199,13 @@ void UAMC_MovementComponent::OnMovementUpdated(float DeltaSeconds, const FVector
 
 bool UAMC_MovementComponent::DoJump(bool bReplayingMoves)
 {
-	if (Super::DoJump(bReplayingMoves))
+	// Modified to fix the instant upwards momentum change when jumping while falling.
+	// Moved in some of the code from CharacterMovementComponent, and only execute it if on the ground.
+	if (MovementMode == EMovementMode::MOVE_Falling)
 	{
+		// In the air - do not override velocity
 		JumpCount++;
-		if (bNeedToJumpBeforeJetpack)
+		if (bNeedToJumpBeforeJetpack)  //  && IsMovingOnGround()
 		{
 			if (JumpCount > 1)
 			{
@@ -218,6 +221,39 @@ bool UAMC_MovementComponent::DoJump(bool bReplayingMoves)
 			return false;
 		}
 		return true;
+	}
+	else
+	{
+		// on the ground - override velocity.
+		// From CharacterMovementComponent DoJump
+		if (CharacterOwner && CharacterOwner->CanJump())
+		{
+			// Don't jump if we can't move up/down.
+			if (!bConstrainToPlane || FMath::Abs(PlaneConstraintNormal.Z) != 1.f)
+			{
+				Velocity.Z = FMath::Max(Velocity.Z, JumpZVelocity);
+				SetMovementMode(MOVE_Falling);
+
+				JumpCount++;
+				if (bNeedToJumpBeforeJetpack)  //  && IsMovingOnGround()
+				{
+					if (JumpCount > 1)
+					{
+						SetJetpacking(true);
+						//Velocity.Z = 0;
+						return false;
+					}
+				}
+				else
+				{
+					SetJetpacking(true);
+					//Velocity.Z = 0;
+					return false;
+				}
+				return true;
+
+			}
+		}
 	}
 	return false;
 }
